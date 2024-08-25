@@ -35,7 +35,11 @@ class Login extends CI_Controller {
     public function login() {
         // Make sure no output is sent before this point
         $postData = file_get_contents("php://input");
-        $data = json_decode($postData, true);   
+        $data = json_decode($postData, true);  
+        // $sevak_id = $data['id'];
+        // unset($data['id']);
+        // $data['sevak_id'] = $sevak_id;
+        // var_dump($data);die;
         $user_details = $this->login_model->check_user($data);
         $response = array();
     
@@ -107,47 +111,38 @@ class Login extends CI_Controller {
     //     echo json_encode($response);
     // }
 
-    // public function forgot_password() {
-    //     // Make sure no output is sent before this point
+    public function forgot_password() {
+        $postData = file_get_contents("php://input");
+        $data = json_decode($postData, true);
+        $response = array();
 
-    //     $postData = file_get_contents("php://input");
-    //     $data = json_decode($postData, true);
-    //     // $x = $this->session->userdata('user_id') ?? '';
-    //     // if($x != ''){
-    //     //     // $data['shibir_id'] = $this->session->userdata('user_id');
-    //     // }
-    //     $response = array();
+        if(isset($data) && !empty($data)){
+            $data['is_changed'] = 'yes';
+            $user = $this->login_model->forgot_password($data);
+            // var_dump($user);die;
+            if(isset($user) && !empty($user) && ($user!=3) && ($user!=2)){
+                $response['status'] = true;
+                $response['message'] = 'Password reset successful';
+            }
+            else if($user == 3){
+                $response['status'] = false;
+                $response['message'] = 'Try another password';
+            }
+            else if($user == 2){
+                $response['status'] = false;
+                $response['message'] = 'Phone Number or Shibir ID is wrong ';
+            }
+            else{
+                $response['status'] = false;
+                $response['message'] = 'Password reset failed';
+            }
+        }
+        else{
+            $response['status'] = false;
+            $response['message'] = 'Invalid request';
+        }
 
-    //     if(isset($data) && !empty($data)){
-    //         $data['is_password_changed'] = 'yes';
-    //         $user = $this->login_model->forgot_password($data);
-    //         // var_dump($user);die;
-    //         if(isset($user) && !empty($user) && ($user!=3) && ($user!=2)){
-    //             $response['status'] = true;
-    //             $response['message'] = 'Password reset successful';
-    //         }
-    //         else if($user == 3){
-    //             $response['status'] = false;
-    //             $response['message'] = 'Try another password';
-    //         }
-    //         else if($user == 2){
-    //             $response['status'] = false;
-    //             $response['message'] = 'Phone Number or Shibir ID is wrong ';
-    //         }
-    //         else{
-    //             $response['status'] = false;
-    //             $response['message'] = 'Password reset failed';
-    //         }
-    //     }
-    //     else{
-    //         $response['status'] = false;
-    //         $response['message'] = 'Invalid request';
-    //     }
-
-    //     header('Content-Type: application/json');
-    //     echo json_encode($response);
-    // }
-
-
-
+        header('Content-Type: application/json');
+        echo json_encode($response);
+    }
 }

@@ -13,6 +13,19 @@ class Sevak_model extends CI_Model {
         $this->db->insert('annkut_sevak', $data);
     }
 
+    public function update_sevak($data = [])
+    {
+        $this->db->where('sevak_id',$data['sevak_id']);
+        $this->db->update('annkut_sevak', $data);
+    }
+
+    public function delete_sevak(array $data)
+    {
+        $this->db->set('deleted_at', 'NOW()', FALSE);
+        $this->db->where('sevak_id', $data['sevak_id']);
+        $this->db->update('annkut_sevak');
+    }
+
     public function get_mandal()
     {
           $this->db->select('*');
@@ -24,7 +37,7 @@ class Sevak_model extends CI_Model {
     public function get_sevak_name($id)
 {
     $this->db->select('name');
-    $this->db->where('id', $id);
+    $this->db->where('sevak_id', $id);
     $query = $this->db->get('annkut_sevak'); // Use get() instead of from()
     $result = $query->result_array();
     return $result;
@@ -39,7 +52,33 @@ public function get_role($id)
     return $result;
 }
 
+public function get_all_users()
+{
+    $this->db->select('*');
+    $query = $this->db->get('annkut_Sevak'); // Use get() instead of from()
+    $result = $query->result_array();
+    return $result;
+}
+
+public function get_all_mandal()
+{
+    $this->db->select('*');
+    // $this->db->where('id', $id);
+    $query = $this->db->get('mandal'); // Use get() instead of from()
+    $result = $query->result_array();
+    return $result;
+}
+
     public function get_sevak_mandal($id)
+    {
+        $this->db->select('mandal');  // Correct the spelling if it's 'mandal' instead of 'madal'
+        $this->db->where('sevak_id', $id);
+        $query = $this->db->get('annkut_sevak');  // Perform the query and store the result in $query
+        $mandal = $query->row_array();  // Call result_array() on the query result object
+        return $mandal;
+    }
+
+    public function check_id($id)
     {
         $this->db->select('mandal');  // Correct the spelling if it's 'mandal' instead of 'madal'
         $this->db->where('id', $id);
@@ -48,19 +87,32 @@ public function get_role($id)
         return $mandal;
     }
 
-    public function get_sevak($mandal)
+    public function get_sevak_id($name)
     {
-        $this->db->select('*');  // Correct the spelling if it's 'mandal' instead of 'madal'
-        $this->db->where('mandal', $mandal);
+        $this->db->select('sevak_id');  // Correct the spelling if it's 'mandal' instead of 'madal'
+        $this->db->where('name', $name);
         $query = $this->db->get('annkut_sevak');  // Perform the query and store the result in $query
-        $mandal = $query->result_array();  // Call result_array() on the query result object
+        $mandal = $query->row_array();  // Call result_array() on the query result object
         return $mandal;
     }
+
+
+    public function get_sevak($mandal)
+    {
+        $this->db->select('*');  
+        $this->db->where('mandal', $mandal);  
+        $this->db->where('deleted_at IS NULL'); 
+        $query = $this->db->get('annkut_sevak');  
+        $result = $query->result_array(); 
+        return $result;
+    }
+    
 
     public function get_sevak_details($id)
     {
         $this->db->select('*');
-        $this->db->where('id', $id);
+        $this->db->where('sevak_id', $id);
+        $this->db->where('deleted_at IS NULL'); 
         $query = $this->db->get('annkut_sevak');  // Execute the query
         $mandal = $query->row_array();  // Get the result as an array
         return $mandal;

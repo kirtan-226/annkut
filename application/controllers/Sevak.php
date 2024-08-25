@@ -34,6 +34,21 @@ class Sevak extends CI_Controller {
         $postData = file_get_contents("php://input");
         $data = json_decode($postData, true);
         $mandal = $this->sevak_model->get_sevak_mandal($data['id']);
+        // var_dump($mandal);die;
+        $mandal_short_form = strtoupper(substr($mandal['mandal'], 0, 2));
+
+        do {
+            // Generate a random 3-digit number
+            $random_number = rand(100, 999);
+
+            // Create the unique ID
+            $sevak_id = $mandal_short_form . $random_number;
+
+            $x = $this->sevak_model->check_id($sevak_id);
+        } while(isset($x) || !empty($x));
+
+        $sevak['sevak_id'] = $sevak_id;
+
         $sevak['filled_form'] = 0; 
         $sevak['is_changed'] = 'no'; 
         $sevak['name'] = $data['name'];
@@ -49,18 +64,33 @@ class Sevak extends CI_Controller {
         echo json_encode($response);
     }
 
+    public function assign_mandal(){
+        $mandals = $this->sevak_model->get_all_mandal();
+        $users = $this->sevak_model->get_all_users();
+    
+        foreach($users as &$user){
+            foreach($mandals as $mandal){
+                if(in_array($user['sevak_id'], [$mandal['sanchalak'], $mandal['nirikshak'], $mandal['nirdeshak']])){
+                    $user['mandal'] = $mandal['mandal_name'];
+                    break;
+                }
+            }
+            $this->sevak_model->update_sevak($user);
+        }
+    }
+
     public function get_sevak($data =[]) {
         // Make sure no output is sent before this point
         $postData = file_get_contents("php://input");
-        $data = json_decode($postData, true);  
+        $data = json_decode($postData, true);
         $mandal = $this->sevak_model->get_sevak_mandal($data['id']);
         $sevak = $this->sevak_model->get_sevak($mandal['mandal']);
-    $name = $this->sevak_model->get_sevak_name($data['id']);
-    $new_sevak_array = [];
+        $name = $this->sevak_model->get_sevak_name($data['id']);
+        $new_sevak_array = [];
 
     foreach ($sevak as $sevak_item) {
         $new_sevak_item = $sevak_item;
-        $new_sevak_item['sevak_id'] = $sevak_item['id'];
+        $new_sevak_item['sevak_id'] = $sevak_item['sevak_id'];
         unset($new_sevak_item['id']);
         $role = $this->sevak_model->get_role($sevak_item['role']);
         $new_sevak_item['role'] = $role['role'];
@@ -76,6 +106,19 @@ class Sevak extends CI_Controller {
     header('Content-Type: application/json');
     echo json_encode($response);
 }
+
+    public function edit_sevak($data =[]) {
+        $postData = file_get_contents("php://input");
+        $data = json_decode($postData, true);
+        $this->sevak_model->update_sevak($data);
+    }
+
+    public function delete_sevak($data =[]) {
+        $postData = file_get_contents("php://input");
+        $data = json_decode($postData, true);
+        $this->sevak_model->update_sevak($data);
+    }
+
 
     public function filter_sevak(){
           $postData = file_get_contents("php://input");

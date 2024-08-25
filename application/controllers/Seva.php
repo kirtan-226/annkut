@@ -44,7 +44,8 @@ class Seva extends CI_Controller {
     public function get_seva($data =[]) {
           // Make sure no output is sent before this point
           $postData = file_get_contents("php://input");
-          $data = json_decode($postData, true);  
+          $data = json_decode($postData, true);
+          
           $seva = $this->seva_model->get_seva($data['sevak_id']);
           $name = $this->sevak_model->get_sevak_name($data['sevak_id']);
           unset($seva['created_at']);
@@ -56,9 +57,9 @@ class Seva extends CI_Controller {
               'status' => 'true'
           ];
 
-          $response['name'] = $name[0]['name'];
-          $response['seva']= $seva;
-          $response['status'] = 'true';
+        //   $response['name'] = $name[0]['name'];
+        //   $response['seva']= $seva;
+        //   $response['status'] = 'true';
           
           header('Content-Type: application/json');
           echo json_encode($response);

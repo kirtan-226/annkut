@@ -15,12 +15,11 @@ class Seva_model extends CI_Model {
 
     public function get_seva($id)
           {
-          $this->db->select('*');
-
-          $this->db->where('sevak_id', $id);
-          $query = $this->db->get('form_details');
-          $seva = $query->result_array();
-          return $seva;
+            $this->db->select('*');
+            $this->db->where('sevak_id', $id);
+            $query = $this->db->get('form_details');
+            $seva = $query->result_array();
+            return $seva;
           }
 
     public function get_sevak_mandal($id)
@@ -32,6 +31,7 @@ class Seva_model extends CI_Model {
         return $mandal;
     }
 
+  
     public function get_sevak_details($id)
     {
         $this->db->select('*');
@@ -52,7 +52,7 @@ class Seva_model extends CI_Model {
     {
         // var_dump($data);die;
         $check =[];
-        $this->db->where('shibir_id',$data['shibir_id']);
+        $this->db->where('sevak_id',$data['sevak_id']);
         $this->db->where('password',$data['password']);
         $x = $this->db->get('shibir_users',$check)->row_array();
         
