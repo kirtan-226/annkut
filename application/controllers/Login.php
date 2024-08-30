@@ -61,7 +61,7 @@ class Login extends CI_Controller {
             unset($sevak['updated_at']);
             unset($sevak['deleted_at']);
             unset($sevak['id']);
-            unset($sevak['role']);
+            // unset($sevak['role']);
             $sevak['role'] =  $role['role'];
             $sevak['sevak_id'] =  $data['sevak_id'];
             // Prepare the response

@@ -31,16 +31,6 @@ class Seva_model extends CI_Model {
         return $mandal;
     }
 
-  
-    public function get_sevak_details($id)
-    {
-        $this->db->select('*');
-        $this->db->where('id', $id);
-        $query = $this->db->get('annkut_sevak');  // Execute the query
-        $mandal = $query->result_array();  // Get the result as an array
-        return $mandal;
-    }
-
     public function reset_password($data = [])
     {     $this->db->where('shibir_id',$data['shibir_id']);
           $this->db->where('deleted_at',null);

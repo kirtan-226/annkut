@@ -25,7 +25,7 @@ class Sevak extends CI_Controller {
     public function __construct() {
         parent::__construct();
         $this->load->model('sevak_model');
-        
+        $this->load->model('mandal_model');
         // $this->session = $this->session;
     }
 
@@ -34,7 +34,12 @@ class Sevak extends CI_Controller {
         $postData = file_get_contents("php://input");
         $data = json_decode($postData, true);
         $mandal = $this->sevak_model->get_sevak_mandal($data['id']);
-        // var_dump($mandal);die;
+        
+        if(!isset($mandal) || empty($mandal)){
+            $response['message'] = 'Entered Wrong Data';
+            $response['status'] = 'false';
+            return $response;
+        }
         $mandal_short_form = strtoupper(substr($mandal['mandal'], 0, 2));
 
         do {
@@ -56,7 +61,11 @@ class Sevak extends CI_Controller {
         $sevak['sevak_target'] = $data['sevak_target'] ?? '';
         $sevak['filled_form'] = $data['filled_form'] ?? '';
         $sevak['phone_number'] = $data['phone_number'] ?? '';
-        $sevak['password'] = 'pramukh0712';
+        $sevak['password'] = 'pramukh@0712';
+        $target = $this->mandal_model->get_mandal_target($mandal['mandal']);
+        // var_dump($target);die;
+        $target['mandal_target'] = intval($target['mandal_target']) + intval($sevak['sevak_target']);
+        $target = $this->mandal_model->update_mandal($target);
         $this->sevak_model->add_sevak($sevak);
         $response['message'] = 'Sevak Added Successfully';
         $response['status'] = 'true';
@@ -79,33 +88,75 @@ class Sevak extends CI_Controller {
         }
     }
 
-    public function get_sevak($data =[]) {
-        // Make sure no output is sent before this point
+    public function get_sevak($data = []) {
+    // Ensure no output is sent before this point
         $postData = file_get_contents("php://input");
         $data = json_decode($postData, true);
-        $mandal = $this->sevak_model->get_sevak_mandal($data['id']);
-        $sevak = $this->sevak_model->get_sevak($mandal['mandal']);
-        $name = $this->sevak_model->get_sevak_name($data['id']);
+    
         $new_sevak_array = [];
-
-    foreach ($sevak as $sevak_item) {
-        $new_sevak_item = $sevak_item;
-        $new_sevak_item['sevak_id'] = $sevak_item['sevak_id'];
-        unset($new_sevak_item['id']);
-        $role = $this->sevak_model->get_role($sevak_item['role']);
-        $new_sevak_item['role'] = $role['role'];
-        $new_sevak_array[] = $new_sevak_item;
+        $name = '';
+    
+        $admin = $this->sevak_model->check_admin($data['id']);
+        
+        if ($admin['role'] == 7) {
+            // If the user is an admin, retrieve all sevaks
+            $sevaks = $this->sevak_model->get_all_sevak();
+            $name = $this->sevak_model->get_sevak_name($data['id']);
+            
+            foreach ($sevaks as $sevak_item) {
+                $role = $this->sevak_model->get_role($sevak_item['role']);
+                // $new_sevak_array[] = [
+                //     'sevak_id' => $sevak_item['sevak_id'],
+                //     'role' => $role['role']
+                // ];
+                $sevak_item['role'] = $role['role'];
+                $new_sevak_array[] = $sevak_item;
+            }
+        } else {
+            // Non-admin users
+            $mandals = $this->mandal_model->get_rolewise_mandal($data['id']);
+            if(isset($mandals) && !empty($mandals)){
+                foreach ($mandals as $mandal) {
+                    $mandal_details = $this->mandal_model->get_mandal_details($mandal['mandal_name']);
+                    
+                    if (in_array($data['id'], [
+                        $mandal_details['nirdeshak'], 
+                        $mandal_details['nirikshak'], 
+                        $mandal_details['sanchalak'], 
+                        $mandal_details['sanyojak']
+                    ])) {
+                        // var_dump($mandal);die;
+                        $sevak_list = $this->sevak_model->get_sevak($mandal['mandal_name']);
+                        $name = $this->sevak_model->get_sevak_name($data['id']);
+                        // var_dump($sevak_list);die;
+                        foreach ($sevak_list as $sevak_item) {
+                            $role = $this->sevak_model->get_role($sevak_item['role']);
+                            // $new_sevak_array[] = [
+                            //     'sevak_id' => $sevak_item['sevak_id'],
+                            //     'role' => $role['role']
+                            // ];
+                            $sevak_item['role'] = $role['role'];
+                            $new_sevak_array[] = $sevak_item;
+                        }
+                    }
+                }
+            }
+            else{
+                $sevak = $this->sevak_model->get_sevak_details($data['id']);
+                $new_sevak_array = $sevak;
+            }
+        }
+        // var_dump($new_sevak_array);die;
+        $response = [
+            'Sanchalak Name' => $name[0]['name'] ?? '',
+            'sevak' => $new_sevak_array,
+            'status' => 'true'
+        ];
+    
+        header('Content-Type: application/json');
+        echo json_encode($response);
     }
 
-    $response = [
-        'Sanchalak Name' => $name[0]['name'] ?? '',
-        'sevak' => $new_sevak_array, // Use the modified $new_sevak_array here
-        'status' => 'true'
-    ];
-
-    header('Content-Type: application/json');
-    echo json_encode($response);
-}
 
     public function edit_sevak($data =[]) {
         $postData = file_get_contents("php://input");

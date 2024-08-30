@@ -1,0 +1,1 @@
+[27-Aug-2024 19:08:17 UTC] PHP Fatal error:  Cannot redeclare Sevak_model::get_role() in /home/bharuchbaps/public_html/demo/application/models/Sevak_model.php on line 67
